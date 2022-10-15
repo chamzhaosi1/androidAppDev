@@ -15,47 +15,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="ac3d3643-b924-43f9-ba9a-c28fa1141c65" name="Changes" comment="Week 2 Tutorial - Activity LifeCycle (Move to a folder &quot;activityLifeCycle&quot;)">
-      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/fragment/.gitignore" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/fragment/app/.gitignore" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/fragment/app/build.gradle" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/fragment/app/proguard-rules.pro" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/fragment/app/src/androidTest/java/com/fragment/ExampleInstrumentedTest.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/fragment/app/src/main/AndroidManifest.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/fragment/app/src/main/java/com/fragment/FirstFragment.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/fragment/app/src/main/java/com/fragment/MainActivity.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/fragment/app/src/main/java/com/fragment/SecondFragment.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/fragment/app/src/main/res/drawable-v24/ic_launcher_foreground.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/fragment/app/src/main/res/drawable/ic_launcher_background.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/fragment/app/src/main/res/layout/activity_main.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/fragment/app/src/main/res/layout/fragment_first.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/fragment/app/src/main/res/layout/fragment_second.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/fragment/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/fragment/app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/fragment/app/src/main/res/mipmap-hdpi/ic_launcher.webp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/fragment/app/src/main/res/mipmap-hdpi/ic_launcher_round.webp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/fragment/app/src/main/res/mipmap-mdpi/ic_launcher.webp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/fragment/app/src/main/res/mipmap-mdpi/ic_launcher_round.webp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/fragment/app/src/main/res/mipmap-xhdpi/ic_launcher.webp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/fragment/app/src/main/res/mipmap-xhdpi/ic_launcher_round.webp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/fragment/app/src/main/res/mipmap-xxhdpi/ic_launcher.webp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/fragment/app/src/main/res/mipmap-xxhdpi/ic_launcher_round.webp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/fragment/app/src/main/res/mipmap-xxxhdpi/ic_launcher.webp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/fragment/app/src/main/res/mipmap-xxxhdpi/ic_launcher_round.webp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/fragment/app/src/main/res/values-night/themes.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/fragment/app/src/main/res/values/colors.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/fragment/app/src/main/res/values/strings.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/fragment/app/src/main/res/values/themes.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/fragment/app/src/main/res/xml/backup_rules.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/fragment/app/src/main/res/xml/data_extraction_rules.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/fragment/app/src/test/java/com/fragment/ExampleUnitTest.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/fragment/build.gradle" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/fragment/gradle.properties" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/fragment/gradle/wrapper/gradle-wrapper.jar" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/fragment/gradle/wrapper/gradle-wrapper.properties" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/fragment/gradlew" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/fragment/gradlew.bat" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/fragment/settings.gradle" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -100,6 +60,7 @@
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="RunOnceActivity.cidr.known.project.marker" value="true" />
     <property name="cidr.known.project.marker" value="true" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../Week3_Tutorial/layout_UI_components" />
   </component>
   <component name="RecentsManager">
     <key name="android.template.1805375293">
