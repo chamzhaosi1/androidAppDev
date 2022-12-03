@@ -1,0 +1,15 @@
+{
+  "staging": {
+    "awscloudformation": {
+      "AuthRoleName": "amplify-androidamplifydatast-staging-52820-authRole",
+      "UnauthRoleArn": "arn:aws:iam::027963690491:role/amplify-androidamplifydatast-staging-52820-unauthRole",
+      "AuthRoleArn": "arn:aws:iam::027963690491:role/amplify-androidamplifydatast-staging-52820-authRole",
+      "Region": "ap-northeast-1",
+      "DeploymentBucketName": "amplify-androidamplifydatast-staging-52820-deployment",
+      "UnauthRoleName": "amplify-androidamplifydatast-staging-52820-unauthRole",
+      "StackName": "amplify-androidamplifydatast-staging-52820",
+      "StackId": "arn:aws:cloudformation:ap-northeast-1:027963690491:stack/amplify-androidamplifydatast-staging-52820/4cdea2a0-72cb-11ed-bfd2-0eaa9b2774c7",
+      "AmplifyAppId": "d15s16pvu4dlka"
+    }
+  }
+}
