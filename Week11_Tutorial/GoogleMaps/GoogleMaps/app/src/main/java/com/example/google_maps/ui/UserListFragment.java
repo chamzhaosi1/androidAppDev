@@ -5,6 +5,7 @@ import static com.example.google_maps.Constants.MAPVIEW_BUNDLE_KEY;
 import android.Manifest;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,6 +20,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.google_maps.R;
 import com.example.google_maps.adapters.UserRecyclerAdapter;
 import com.example.google_maps.models.User;
+import com.example.google_maps.models.UserLocation;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -37,6 +39,7 @@ public class UserListFragment extends Fragment implements OnMapReadyCallback {
 
     //vars
     private ArrayList<User> mUserList = new ArrayList<>();
+    private ArrayList<UserLocation> mUserLocation = new ArrayList<>();
     private UserRecyclerAdapter mUserRecyclerAdapter;
 
 
@@ -49,7 +52,10 @@ public class UserListFragment extends Fragment implements OnMapReadyCallback {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
             mUserList = getArguments().getParcelableArrayList(getString(R.string.intent_user_list));
+
+            mUserLocation = getArguments().getParcelableArrayList(getString(R.string.intent_user_locations));
         }
+
     }
 
     @Nullable
@@ -59,8 +65,13 @@ public class UserListFragment extends Fragment implements OnMapReadyCallback {
         mUserListRecyclerView = view.findViewById(R.id.user_list_recycler_view);
         mMapView = (MapView) view.findViewById(R.id.user_list_map);
         initUserListRecyclerView();
-
         initGoogleMap(savedInstanceState);
+
+        for (UserLocation userLocation : mUserLocation){
+            Log.d(TAG, "onCreateView: user location: " + userLocation.getUser().getUsername());
+            Log.d(TAG, "onCreateViewL geopoint: " + userLocation.getGeo_point().getLatitude()+ ", " +
+                    userLocation.getGeo_point().getLongitude());
+        }
         return view;
     }
 
