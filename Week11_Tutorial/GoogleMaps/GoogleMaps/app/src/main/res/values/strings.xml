@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">GoogleMaps2018</string>
 
+    <string name="google_map_api_key">AIzaSyAXyv5rouoD8AXQZmh5nKWesG6p4X0neg4</string>
 
     <!-- Strings related to login -->
     <string name="prompt_email">Email</string>
