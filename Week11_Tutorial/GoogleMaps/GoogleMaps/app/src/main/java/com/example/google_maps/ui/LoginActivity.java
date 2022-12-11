@@ -101,6 +101,7 @@ public class LoginActivity extends AppCompatActivity implements
                             if(task.isSuccessful()){
                                 Log.d(TAG, "onComplete: successfully set the user client.");
                                 User user = task.getResult().toObject(User.class);
+                                Log.d(TAG, "user : "+user);
                                 ((UserClient)(getApplicationContext())).setUser(user);
                             }
                         }
