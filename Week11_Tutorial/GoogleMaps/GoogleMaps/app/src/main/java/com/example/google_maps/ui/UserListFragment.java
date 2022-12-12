@@ -4,6 +4,8 @@ import static com.example.google_maps.Constants.MAPVIEW_BUNDLE_KEY;
 
 import android.Manifest;
 import android.animation.ObjectAnimator;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
@@ -12,6 +14,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.RelativeLayout;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -33,6 +36,7 @@ import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -40,11 +44,16 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.maps.DirectionsApiRequest;
+import com.google.maps.GeoApiContext;
+import com.google.maps.PendingResult;
 import com.google.maps.android.clustering.ClusterManager;
+import com.google.maps.model.DirectionsResult;
 
 import java.util.ArrayList;
 
-public class UserListFragment extends Fragment implements OnMapReadyCallback, View.OnClickListener{
+public class UserListFragment extends Fragment implements
+        OnMapReadyCallback, View.OnClickListener, GoogleMap.OnInfoWindowClickListener{
 
     private static final String TAG = "UserListFragment";
     private static final int LOCATION_UPDATE_INTERVAL = 3000;
@@ -70,6 +79,7 @@ public class UserListFragment extends Fragment implements OnMapReadyCallback, Vi
     private Handler mHandler = new Handler();
     private Runnable mRunnable;
     private int mMapLayoutState = 0;
+    private GeoApiContext mGeoApiContext = null;
 
 
     public static UserListFragment newInstance() {
@@ -105,6 +115,40 @@ public class UserListFragment extends Fragment implements OnMapReadyCallback, Vi
         setUserPosition();
 
         return view;
+    }
+
+    private void calculateDirections(Marker marker){
+        Log.d(TAG, "calculateDirections: calculating directions.");
+
+        com.google.maps.model.LatLng destination = new com.google.maps.model.LatLng(
+                marker.getPosition().latitude,
+                marker.getPosition().longitude
+        );
+        DirectionsApiRequest directions = new DirectionsApiRequest(mGeoApiContext);
+
+        directions.alternatives(true);
+        directions.origin(
+                new com.google.maps.model.LatLng(
+                        mUserPosition.getGeo_point().getLatitude(),
+                        mUserPosition.getGeo_point().getLongitude()
+                )
+        );
+        Log.d(TAG, "calculateDirections: destination: " + destination.toString());
+        directions.destination(destination).setCallback(new PendingResult.Callback<DirectionsResult>() {
+            @Override
+            public void onResult(DirectionsResult result) {
+                Log.d(TAG, "calculateDirections: routes: " + result.routes[0].toString());
+                Log.d(TAG, "calculateDirections: duration: " + result.routes[0].legs[0].duration);
+                Log.d(TAG, "calculateDirections: distance: " + result.routes[0].legs[0].distance);
+                Log.d(TAG, "calculateDirections: geocodedWayPoints: " + result.geocodedWaypoints[0].toString());
+            }
+
+            @Override
+            public void onFailure(Throwable e) {
+                Log.e(TAG, "calculateDirections: Failed to get directions: " + e.getMessage() );
+
+            }
+        });
     }
 
 
@@ -170,49 +214,61 @@ public class UserListFragment extends Fragment implements OnMapReadyCallback, Vi
     }
 
     private void addMapMarkers(){
-        if (mClusterManager == null){
-            mClusterManager = new ClusterManager<ClusterMarker>(getActivity().getApplicationContext(), mGoogleMap);
-        }
-        if (mClusterManagerRenderer == null){
-            mClusterManagerRenderer = new MyClusterManagerRenderer(
-                    getActivity(),
-                    mGoogleMap,
-                    mClusterManager
-            );
-            mClusterManager.setRenderer(mClusterManagerRenderer);
-        }
 
-        for (UserLocation userLocation: mUserLocations){
-            Log.d(TAG, "addMapMarkers: location " + userLocation.getGeo_point().toString());
-            try {
-                String snippet = "";
-                if(userLocation.getUser().getUser_id().equals(FirebaseAuth.getInstance().getUid())){
-                    snippet = "This is you";
-                }
-                else{
-                    snippet = "Determin route to " + userLocation.getUser().getUsername() + "?";
-                }
-                 int avatar = R.drawable.cwm_logo;
-                try {
-                    avatar = Integer.parseInt(userLocation.getUser().getAvatar());
-                }catch (NumberFormatException e){
-                    Log.d(TAG, "addMapMarkers: no avatar for " + userLocation.getUser().getUsername() + ", setting default.");
-                }
-                ClusterMarker newClusterMarker = new ClusterMarker(
-                        new LatLng(userLocation.getGeo_point().getLatitude(), userLocation.getGeo_point().getLongitude()),
-                        userLocation.getUser().getUsername(),
-                        snippet,
-                        avatar,
-                        userLocation.getUser()
-                );
-                mClusterManager.addItem(newClusterMarker);
-                mClusterMarkers.add(newClusterMarker);
-            }catch (NullPointerException e){
-                Log.e(TAG, "addMapMarkers: NullPointerException: " + e.getMessage());
+        if(mGoogleMap != null){
+
+            if(mClusterManager == null){
+                mClusterManager = new ClusterManager<ClusterMarker>(getActivity().getApplicationContext(), mGoogleMap);
             }
+            if(mClusterManagerRenderer == null){
+                mClusterManagerRenderer = new MyClusterManagerRenderer(
+                        getActivity(),
+                        mGoogleMap,
+                        mClusterManager
+                );
+                mClusterManager.setRenderer(mClusterManagerRenderer);
+            }
+
+            for(UserLocation userLocation: mUserLocations){
+
+                Log.d(TAG, "addMapMarkers: location: " + userLocation.getGeo_point().toString());
+                try{
+                    String snippet = "";
+                    if(userLocation.getUser().getUser_id().equals(FirebaseAuth.getInstance().getUid())){
+                        snippet = "This is you";
+                        Log.d(TAG, "you: " + snippet);
+                    }
+                    else{
+                        snippet = "Determine route to " + userLocation.getUser().getUsername() + "?";
+                        Log.d(TAG, "other: " + snippet);
+                    }
+
+                    int avatar = R.drawable.cartman_cop; // set the default avatar
+                    try{
+                        avatar = Integer.parseInt(userLocation.getUser().getAvatar());
+                    }catch (NumberFormatException e){
+                        Log.d(TAG, "addMapMarkers: no avatar for " + userLocation.getUser().getUsername() + ", setting default.");
+                    }
+                    ClusterMarker newClusterMarker = new ClusterMarker(
+                            new LatLng(userLocation.getGeo_point().getLatitude(), userLocation.getGeo_point().getLongitude()),
+                            userLocation.getUser().getUsername(),
+                            snippet,
+                            avatar,
+                            userLocation.getUser()
+                    );
+                    mClusterManager.addItem(newClusterMarker);
+                    mClusterMarkers.add(newClusterMarker);
+                    Log.d(TAG, "mClusterMarkers : " + mClusterMarkers);
+
+                }catch (NullPointerException e){
+                    Log.e(TAG, "addMapMarkers: NullPointerException: " + e.getMessage() );
+                }
+
+            }
+            mClusterManager.cluster();
+
+            setCameraView();
         }
-        mClusterManager.cluster();
-        setCameraView();
     }
 
     private void setCameraView(){
@@ -250,6 +306,12 @@ public class UserListFragment extends Fragment implements OnMapReadyCallback, Vi
         mMapView.onCreate(mapViewBundle);
 
         mMapView.getMapAsync(this);
+
+        if(mGeoApiContext == null){
+            mGeoApiContext = new GeoApiContext.Builder()
+                    .apiKey(getString(R.string.google_api_key))
+                    .build();
+        }
     }
 
 
@@ -293,16 +355,20 @@ public class UserListFragment extends Fragment implements OnMapReadyCallback, Vi
 
     @Override
     public void onMapReady(GoogleMap map) {
-        map.addMarker(new MarkerOptions().position(new LatLng(0, 0)).title("Marker"));
-        if (ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED
-                && ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_COARSE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED) {
-            return;
-        }
+//        map.addMarker(new MarkerOptions().position(new LatLng(0, 0)).title("Marker"));
+//        if (ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_FINE_LOCATION)
+//                != PackageManager.PERMISSION_GRANTED
+//                && ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_COARSE_LOCATION)
+//                != PackageManager.PERMISSION_GRANTED) {
+//            return;
+//        }
 //        map.setMyLocationEnabled(true);
+//        mGoogleMap = map;
+//        addMapMarkers();
+
         mGoogleMap = map;
         addMapMarkers();
+        mGoogleMap.setOnInfoWindowClickListener(this);
     }
 
     @Override
@@ -379,6 +445,29 @@ public class UserListFragment extends Fragment implements OnMapReadyCallback, Vi
 
         recyclerAnimation.start();
         mapAnimation.start();
+    }
+
+    @Override
+    public void onInfoWindowClick(@NonNull Marker marker) {
+        Log.d(TAG, "onInfoWindowClick " + marker.getSnippet());
+        if(marker.getSnippet().equals("This is you")){
+            marker.hideInfoWindow();
+        }
+        else{
+
+            final AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+            builder.setMessage(marker.getSnippet())
+                    .setCancelable(true)
+                    .setPositiveButton("Yes", (dialog, id) -> {
+                        calculateDirections(marker);
+                        dialog.dismiss();
+                    })
+                    .setNegativeButton("No", (dialog, id) -> {
+                            dialog.cancel();
+                    });
+            final AlertDialog alert = builder.create();
+            alert.show();
+        }
     }
 }
 
