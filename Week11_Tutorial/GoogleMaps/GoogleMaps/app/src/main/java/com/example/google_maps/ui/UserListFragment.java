@@ -6,7 +6,9 @@ import android.Manifest;
 import android.animation.ObjectAnimator;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -63,7 +65,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class UserListFragment extends Fragment implements
-        OnMapReadyCallback, View.OnClickListener, GoogleMap.OnInfoWindowClickListener, GoogleMap.OnPolylineClickListener{
+        OnMapReadyCallback,
+        View.OnClickListener,
+        GoogleMap.OnInfoWindowClickListener,
+        GoogleMap.OnPolylineClickListener,
+        UserRecyclerAdapter.UserListRecyclerClickListener
+{
 
     private static final String TAG = "UserListFragment";
     private static final int LOCATION_UPDATE_INTERVAL = 3000;
@@ -90,8 +97,9 @@ public class UserListFragment extends Fragment implements
     private Runnable mRunnable;
     private int mMapLayoutState = 0;
     private GeoApiContext mGeoApiContext = null;
-    private ArrayList<PolylineData> mPolylinesData = new ArrayList<>();
+    private ArrayList<PolylineData> mPolyLinesData = new ArrayList<>();
     private Marker mSelectedMarker = null;
+    private ArrayList<Marker> mTripMarkers = new ArrayList<>();
 
 
     public static UserListFragment newInstance() {
@@ -121,12 +129,45 @@ public class UserListFragment extends Fragment implements
         mMapView = (MapView) view.findViewById(R.id.user_list_map);
         mMapContainer = view.findViewById(R.id.map_container);
         view.findViewById(R.id.btn_full_screen_map).setOnClickListener(this);
+        view.findViewById(R.id.btn_reset_map).setOnClickListener(this);
         initUserListRecyclerView();
         initGoogleMap(savedInstanceState);
 
         setUserPosition();
 
         return view;
+    }
+
+    public void zoomRoute(List<LatLng> lstLatLngRoute) {
+
+        if (mGoogleMap == null || lstLatLngRoute == null || lstLatLngRoute.isEmpty()) return;
+
+        LatLngBounds.Builder boundsBuilder = new LatLngBounds.Builder();
+        for (LatLng latLngPoint : lstLatLngRoute)
+            boundsBuilder.include(latLngPoint);
+
+        int routePadding = 120;
+        LatLngBounds latLngBounds = boundsBuilder.build();
+
+        mGoogleMap.animateCamera(
+                CameraUpdateFactory.newLatLngBounds(latLngBounds, routePadding),
+                600,
+                null
+        );
+    }
+
+    private void removeTripMarkers(){
+        for(Marker marker: mTripMarkers){
+            marker.remove();
+        }
+    }
+
+    private void resetSelectedMarker(){
+        if(mSelectedMarker != null){
+            mSelectedMarker.setVisible(true);
+            mSelectedMarker = null;
+            removeTripMarkers();
+        }
     }
 
     private void calculateDirections(Marker marker){
@@ -170,12 +211,12 @@ public class UserListFragment extends Fragment implements
             @Override
             public void run() {
                 Log.d(TAG, "run: result routes: " + result.routes.length);
-                if(mPolylinesData.size() > 0){
-                    for(PolylineData polylineData: mPolylinesData){
+                if(mPolyLinesData.size() > 0){
+                    for(PolylineData polylineData: mPolyLinesData){
                         polylineData.getPolyline().remove();
                     }
-                    mPolylinesData.clear();
-                    mPolylinesData = new ArrayList<>();
+                    mPolyLinesData.clear();
+                    mPolyLinesData = new ArrayList<>();
                 }
 
                 double duration = 999999999;
@@ -198,12 +239,13 @@ public class UserListFragment extends Fragment implements
                     Polyline polyline = mGoogleMap.addPolyline(new PolylineOptions().addAll(newDecodedPath));
                     polyline.setColor(ContextCompat.getColor(getActivity(), R.color.darkGrey));
                     polyline.setClickable(true);
-                    mPolylinesData.add(new PolylineData(polyline, route.legs[0]));
+                    mPolyLinesData.add(new PolylineData(polyline, route.legs[0]));
 
                     double tempDuration = route.legs[0].duration.inSeconds;
                     if (tempDuration < duration){
                         duration = tempDuration;
                         onPolylineClick(polyline);
+                        zoomRoute(polyline.getPoints());
                     }
 
                     mSelectedMarker.setVisible(false);
@@ -273,9 +315,31 @@ public class UserListFragment extends Fragment implements
 
     }
 
+    private void resetMap(){
+        if(mGoogleMap != null) {
+            mGoogleMap.clear();
+
+            if(mClusterManager != null){
+                mClusterManager.clearItems();
+            }
+
+            if (mClusterMarkers.size() > 0) {
+                mClusterMarkers.clear();
+                mClusterMarkers = new ArrayList<>();
+            }
+
+            if(mPolyLinesData.size() > 0){
+                mPolyLinesData.clear();
+                mPolyLinesData = new ArrayList<>();
+            }
+        }
+    }
+
     private void addMapMarkers(){
 
         if(mGoogleMap != null){
+
+            resetMap();
 
             if(mClusterManager == null){
                 mClusterManager = new ClusterManager<ClusterMarker>(getActivity().getApplicationContext(), mGoogleMap);
@@ -376,7 +440,7 @@ public class UserListFragment extends Fragment implements
 
 
     private void initUserListRecyclerView() {
-        mUserRecyclerAdapter = new UserRecyclerAdapter(mUserList);
+        mUserRecyclerAdapter = new UserRecyclerAdapter(mUserList, this);
         mUserListRecyclerView.setAdapter(mUserRecyclerAdapter);
         mUserListRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
     }
@@ -466,7 +530,10 @@ public class UserListFragment extends Fragment implements
                 }
                 break;
             }
-
+            case R.id.btn_reset_map:{
+                addMapMarkers();
+                break;
+            }
         }
     }
 
@@ -510,25 +577,57 @@ public class UserListFragment extends Fragment implements
 
     @Override
     public void onInfoWindowClick(@NonNull Marker marker) {
-        Log.d(TAG, "onInfoWindowClick " + marker.getSnippet());
-        if(marker.getSnippet().equals("This is you")){
-            marker.hideInfoWindow();
-        }
-        else{
-
+        if(marker.getTitle().contains("Trip #")){
             final AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-            builder.setMessage(marker.getSnippet())
+            builder.setMessage("Open Google Maps?")
                     .setCancelable(true)
-                    .setPositiveButton("Yes", (dialog, id) -> {
-                        mSelectedMarker = marker;
-                        calculateDirections(marker);
-                        dialog.dismiss();
+                    .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                        public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
+                            String latitude = String.valueOf(marker.getPosition().latitude);
+                            String longitude = String.valueOf(marker.getPosition().longitude);
+                            Uri gmmIntentUri = Uri.parse("google.navigation:q=" + latitude + "," + longitude);
+                            Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
+                            mapIntent.setPackage("com.google.android.apps.maps");
+
+                            try{
+                                if (mapIntent.resolveActivity(getActivity().getPackageManager()) != null) {
+                                    startActivity(mapIntent);
+                                }
+                            }catch (NullPointerException e){
+                                Log.e(TAG, "onClick: NullPointerException: Couldn't open map." + e.getMessage() );
+                                Toast.makeText(getActivity(), "Couldn't open map", Toast.LENGTH_SHORT).show();
+                            }
+
+                        }
                     })
-                    .setNegativeButton("No", (dialog, id) -> {
+                    .setNegativeButton("No", new DialogInterface.OnClickListener() {
+                        public void onClick(final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
                             dialog.cancel();
+                        }
                     });
             final AlertDialog alert = builder.create();
             alert.show();
+        }else{
+            if(marker.getSnippet().equals("This is you")){
+                marker.hideInfoWindow();
+            }
+            else{
+
+                final AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+                builder.setMessage(marker.getSnippet())
+                        .setCancelable(true)
+                        .setPositiveButton("Yes", (dialog, id) -> {
+                            resetSelectedMarker();
+                            mSelectedMarker = marker;
+                            calculateDirections(marker);
+                            dialog.dismiss();
+                        })
+                        .setNegativeButton("No", (dialog, id) -> {
+                            dialog.cancel();
+                        });
+                final AlertDialog alert = builder.create();
+                alert.show();
+            }
         }
     }
 
@@ -536,7 +635,7 @@ public class UserListFragment extends Fragment implements
     public void onPolylineClick(@NonNull Polyline polyline) {
 
         int index = 0;
-        for(PolylineData polylineData: mPolylinesData){
+        for(PolylineData polylineData: mPolyLinesData){
             Log.d(TAG, "onPolylineClick: toString: " + polylineData.toString());
             if(polyline.getId().equals(polylineData.getPolyline().getId())){
                 polylineData.getPolyline().setColor(ContextCompat.getColor(getActivity(), R.color.blue1));
@@ -554,10 +653,30 @@ public class UserListFragment extends Fragment implements
                 );
 
                 marker.showInfoWindow();
+
+                mTripMarkers.add(marker);
             }
             else{
                 polylineData.getPolyline().setColor(ContextCompat.getColor(getActivity(), R.color.darkGrey));
                 polylineData.getPolyline().setZIndex(0);
+            }
+        }
+    }
+
+    @Override
+    public void onUserClicked(int position) {
+        Log.d(TAG, "onUserClicked: selected a user: " + mUserList.get(position).getUser_id());
+
+        String selectedUserId = mUserList.get(position).getUser_id();
+
+        for(ClusterMarker clusterMarker: mClusterMarkers){
+            if (selectedUserId.equals(clusterMarker.getUser().getUser_id())){
+                mGoogleMap.animateCamera(CameraUpdateFactory.newLatLng(
+                        new LatLng(clusterMarker.getPosition().latitude, clusterMarker.getPosition().longitude)),
+                        600,
+                        null
+                );
+                break;
             }
         }
     }
