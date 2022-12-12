@@ -65,4 +65,8 @@ dependencies {
 
     // Google location
     implementation 'com.google.android.gms:play-services-location:21.0.1'
+
+    // Google map utils for clustering
+    implementation 'com.google.maps.android:android-maps-utils:2.3.0'
+
 }
