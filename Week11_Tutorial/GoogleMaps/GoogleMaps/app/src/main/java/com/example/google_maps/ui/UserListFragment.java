@@ -2,12 +2,11 @@ package com.example.google_maps.ui;
 
 import static com.example.google_maps.Constants.MAPVIEW_BUNDLE_KEY;
 
-import android.Manifest;
+
 import android.animation.ObjectAnimator;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -21,7 +20,6 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -59,7 +57,6 @@ import com.google.maps.internal.PolylineEncoding;
 import com.google.maps.model.DirectionsResult;
 import com.google.maps.model.DirectionsRoute;
 
-import org.checkerframework.checker.units.qual.A;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -118,7 +115,6 @@ public class UserListFragment extends Fragment implements
                 mUserLocations.addAll(locations);
             }
         }
-
     }
 
     @Nullable
@@ -297,6 +293,8 @@ public class UserListFragment extends Fragment implements
                                         );
 
                                         mClusterMarkers.get(i).setPosition(updatedLatLng);
+//                                        Log.d(TAG, "retrieveUserLocations: " +  mClusterMarkers.get(i).getTitle());
+//                                        Log.d(TAG, "retrieveUserLocations: " +  mClusterMarkers.get(i).getSnippet());
                                         mClusterManagerRenderer.setUpdateMarker(mClusterMarkers.get(i));
                                     }
 
@@ -360,11 +358,11 @@ public class UserListFragment extends Fragment implements
                     String snippet = "";
                     if(userLocation.getUser().getUser_id().equals(FirebaseAuth.getInstance().getUid())){
                         snippet = "This is you";
-                        Log.d(TAG, "you: " + snippet);
+//                        Log.d(TAG, "you: " + snippet);
                     }
                     else{
                         snippet = "Determine route to " + userLocation.getUser().getUsername() + "?";
-                        Log.d(TAG, "other: " + snippet);
+//                        Log.d(TAG, "other: " + snippet);
                     }
 
                     int avatar = R.drawable.cartman_cop; // set the default avatar
@@ -373,6 +371,15 @@ public class UserListFragment extends Fragment implements
                     }catch (NumberFormatException e){
                         Log.d(TAG, "addMapMarkers: no avatar for " + userLocation.getUser().getUsername() + ", setting default.");
                     }
+//                    Marker melbourne = mGoogleMap.addMarker(new MarkerOptions().position(new LatLng(3.1678234, 101.6325515)).title("Marker").snippet("fdgsdgsdfg"));
+//                    melbourne.showInfoWindow();
+//                    mGoogleMap.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
+//                        @Override
+//                        public void onInfoWindowClick(@NonNull Marker marker) {
+//                            Log.d(TAG, "adfsdafasdf");
+//                        }
+//                    });
+
                     ClusterMarker newClusterMarker = new ClusterMarker(
                             new LatLng(userLocation.getGeo_point().getLatitude(), userLocation.getGeo_point().getLongitude()),
                             userLocation.getUser().getUsername(),
@@ -382,7 +389,7 @@ public class UserListFragment extends Fragment implements
                     );
                     mClusterManager.addItem(newClusterMarker);
                     mClusterMarkers.add(newClusterMarker);
-                    Log.d(TAG, "mClusterMarkers : " + mClusterMarkers);
+//                    Log.d(TAG, "mClusterMarkers : " + mClusterMarkers);
 
                 }catch (NullPointerException e){
                     Log.e(TAG, "addMapMarkers: NullPointerException: " + e.getMessage() );
@@ -493,7 +500,20 @@ public class UserListFragment extends Fragment implements
         mGoogleMap = map;
         mGoogleMap.setOnPolylineClickListener(this);
         addMapMarkers();
-        mGoogleMap.setOnInfoWindowClickListener(this);
+//        mGoogleMap.setOnInfoWindowClickListener(this);
+        mGoogleMap.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
+            @Override
+            public void onInfoWindowClick(Marker marker) {
+                Toast.makeText(getActivity(), "Infowindow clicked", Toast.LENGTH_SHORT).show();
+            }
+        });
+        mGoogleMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+            @Override
+            public boolean onMarkerClick(Marker marker) {
+                Toast.makeText(getActivity(), "Marker Clicked", Toast.LENGTH_SHORT).show();
+                return true;
+            }
+        });
     }
 
     @Override
@@ -577,6 +597,7 @@ public class UserListFragment extends Fragment implements
 
     @Override
     public void onInfoWindowClick(@NonNull Marker marker) {
+
         if(marker.getTitle().contains("Trip #")){
             final AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
             builder.setMessage("Open Google Maps?")
