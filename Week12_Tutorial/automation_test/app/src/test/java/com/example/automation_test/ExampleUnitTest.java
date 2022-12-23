@@ -4,7 +4,6 @@ import org.junit.Test;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.remote.DesiredCapabilities;
-import org.testng.Assert;
 
 import static org.junit.Assert.*;
 
@@ -45,6 +44,6 @@ public class ExampleUnitTest {
         WebElement  el10 = (WebElement ) ad.findElement(By.id("com.calculator:id/tvEquals"));
         el10.click();
 
-        Assert.assertEquals(ad.findElement(By.id("com.calculator:id/tvResult")).getText(),"15");
+        assertEquals(ad.findElement(By.id("com.calculator:id/tvResult")).getText(),"15");
     }
 }
